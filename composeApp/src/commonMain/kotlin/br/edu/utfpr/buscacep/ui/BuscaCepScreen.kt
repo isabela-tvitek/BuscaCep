@@ -69,8 +69,14 @@ fun BuscaCepScreen(
                 enabled = formState.isDataValid && !formState.isLoading,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.elevatedButtonColors(
-                    containerColor = if (formState.isDataValid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = if (formState.isDataValid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                    containerColor = if (formState.isDataValid)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = if (formState.isDataValid)
+                        MaterialTheme.colorScheme.onPrimary
+                    else
+                        MaterialTheme.colorScheme.onSurface
                 )
             ) {
                 if (formState.isLoading) {

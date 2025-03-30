@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import br.edu.utfpr.buscacep.repository.CepRepository
 import br.edu.utfpr.buscacep.ui.CepFormState
 import br.edu.utfpr.buscacep.ui.FormField
-import br.edu.utfpr.buscacep.utils.extensions.formatarCep
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -58,10 +57,8 @@ class CepViewModel(
 
     fun onCepChanged(cep: String) {
         val cleanedCep = cep.replace("[^0-9]".toRegex(), "")
-        val formattedCep = cleanedCep.formatarCep()
-
         formState.value = formState.value.copy(
-            cep = FormField(value = formattedCep),
+            cep = FormField(value = cleanedCep),
             isDataValid = isCepValid(cleanedCep)
         )
     }
