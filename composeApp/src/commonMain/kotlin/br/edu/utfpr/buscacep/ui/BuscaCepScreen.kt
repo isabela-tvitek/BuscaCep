@@ -2,51 +2,40 @@ package br.edu.utfpr.buscacep.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import br.edu.utfpr.buscacep.model.Endereco
 import br.edu.utfpr.buscacep.viewmodel.CepViewModel
-
-class CepVisualTransformation : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val input = text.text
-        val masked = if (input.length <= 5) {
-            input
-        } else {
-            input.substring(0, 5) + "-" + input.substring(5).take(3)
-        }
-        return TransformedText(AnnotatedString(masked), OffsetMapping.Identity)
-    }
-}
+import br.edu.utfpr.buscacep.ui.visualtransformation.CepVisualTransformation
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BuscaCepScreen(
     modifier: Modifier = Modifier,
-    cepViewModel: CepViewModel,
+    cepViewModel: CepViewModel
 ) {
     val formState = cepViewModel.formState.value
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold (
+    LaunchedEffect(formState.hasErrorLoading) {
+        if (formState.hasErrorLoading) {
+            snackbarHostState.showSnackbar(
+                message = "Ocorreu um erro ao consultar o CEP. " +
+                        "Aguarde um momento e tente novamente."
+            )
+        }
+    }
+
+    Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .padding(top = 24.dp)
+            .padding(top = 24.dp),
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) {
         Column(
             modifier = Modifier
@@ -55,64 +44,73 @@ fun BuscaCepScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             OutlinedTextField(
-                value = formState.cep,
+                value = formState.cep.value,
                 onValueChange = { cepViewModel.onCepChanged(it) },
                 label = { Text("Digite o CEP") },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Number
                 ),
-                visualTransformation = CepVisualTransformation(),  // Aplicando a máscara
+                visualTransformation = CepVisualTransformation(),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp)
+                    .padding(top = 16.dp),
+                isError = formState.cep.hasError
             )
-
+            formState.cep.errorStringResource?.let {
+                Text(
+                    text = stringResource(it),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
             Spacer(modifier = Modifier.height(16.dp))
-
             ElevatedButton(
-                onClick = { cepViewModel.buscarCep(formState.cep) },
+                onClick = { cepViewModel.buscarCep(formState.cep.value) },
                 enabled = formState.isDataValid && !formState.isLoading,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.elevatedButtonColors(
+                    containerColor = if (formState.isDataValid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = if (formState.isDataValid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                )
             ) {
                 if (formState.isLoading) {
                     CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
-                    Text("Buscar")
+                    Text(
+                        text = "Buscar",
+                        color = if (formState.isDataValid)
+                            MaterialTheme.colorScheme.onPrimary
+                        else
+                            MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            if (!formState.isLoading && !formState.hasErrorLoading) {
-                ResultadoCep(formState.endereco)
-            }
-
-            if (formState.hasErrorLoading) {
-                Snackbar(
-                    action = {
-                        TextButton(onClick = { cepViewModel.buscarCep(formState.cep) }) {
-                            Text("Tentar Novamente")
-                        }
-                    },
-                    content = { Text("Ocorreu um erro ao consultar o CEP. Tente novamente.") }
-                )
-            }
+            ResultadoCep(formState.endereco, formState)
         }
     }
 }
 
 @Composable
-fun ResultadoCep(endereco: Endereco?) {
+fun ResultadoCep(endereco: Endereco?, formState: CepFormState) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        endereco?.let {
-            Text("CEP: ${it.cep}")
-            Text("Logradouro: ${it.logradouro}")
-            Text("Bairro: ${it.bairro}")
-            Text("Localidade: ${it.localidade}")
-            Text("UF: ${it.uf}")
+        if (!formState.isLoading && !formState.hasErrorLoading && endereco != null) {
+            endereco?.let {
+                Text("CEP: ${it.cep}")
+                Text("Logradouro: ${it.logradouro}")
+                Text("Bairro: ${it.bairro}")
+                Text("Localidade: ${it.localidade}")
+                Text("UF: ${it.uf}")
+            }
+        } else {
+            Text("CEP:")
+            Text("Logradouro:")
+            Text("Bairro:")
+            Text("Localidade:")
+            Text("UF:")
         }
     }
 }

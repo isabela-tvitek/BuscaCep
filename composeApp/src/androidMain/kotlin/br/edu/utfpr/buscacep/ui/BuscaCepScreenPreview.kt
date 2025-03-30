@@ -9,26 +9,84 @@ import br.edu.utfpr.buscacep.viewmodel.CepViewModel
 
 @Preview(showBackground = true)
 @Composable
-private fun BuscaCepScreenPreview() {
+private fun BuscaCepScreenEmptyPreview() {
     MaterialTheme {
         val mockViewModel = CepViewModel(cepRepository = CepRepository())
 
-        mockViewModel.setFormState(
-            CepFormState(
-                cep = "85064-090",
-                isDataValid = true,
-                isLoading = false,
-                hasErrorLoading = false,
-                endereco = Endereco(
-                    cep = "85064-090",
-                    logradouro = "Rua dos Carpinteiros",
-                    bairro = "Imóvel Morro Alto",
-                    localidade = "Guarapuava",
-                    uf = "PR"
-                )
+        mockViewModel.formState.value = CepFormState(
+            cep = FormField(value = ""),
+            isDataValid = false,
+            isLoading = false,
+            hasErrorLoading = false,
+            endereco = null
+        )
+
+        BuscaCepScreen(cepViewModel = mockViewModel)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BuscaCepScreenLoadingPreview() {
+    MaterialTheme {
+        val mockViewModel = CepViewModel(cepRepository = CepRepository())
+
+        mockViewModel.formState.value = CepFormState(
+            cep = FormField(value = "85504-430"),
+            isDataValid = true,
+            isLoading = true,
+            hasErrorLoading = false,
+            endereco = Endereco(
+                cep = "85504-430",
+                logradouro = "Rua Itabira",
+                bairro = "Bancários",
+                localidade = "Pato Branco",
+                uf = "PR"
             )
         )
 
         BuscaCepScreen(cepViewModel = mockViewModel)
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun BuscaCepScreenPreview() {
+    MaterialTheme {
+        val mockViewModel = CepViewModel(cepRepository = CepRepository())
+
+        mockViewModel.formState.value = CepFormState(
+            cep = FormField(value = "85504-430"),
+            isDataValid = true,
+            isLoading = false,
+            hasErrorLoading = false,
+            endereco = Endereco(
+                cep = "85504-430",
+                logradouro = "Rua Itabira",
+                bairro = "Bancários",
+                localidade = "Pato Branco",
+                uf = "PR"
+            )
+        )
+
+        BuscaCepScreen(cepViewModel = mockViewModel)
+    }
+}
+
+//@Preview(showBackground = true)
+//@Composable
+//private fun BuscaCepScreenErrorPreview() {
+//    MaterialTheme {
+//        val mockViewModel = CepViewModel(cepRepository = CepRepository())
+//
+//        mockViewModel.formState.value = CepFormState(
+//            cep = FormField(value = "85504-430"),
+//            isDataValid = false,
+//            isLoading = false,
+//            hasErrorLoading = true,
+//            endereco = null
+//        )
+//
+//        BuscaCepScreen(cepViewModel = mockViewModel)
+//    }
+//}
